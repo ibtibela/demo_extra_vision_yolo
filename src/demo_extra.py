@@ -12,6 +12,8 @@ alerta_activa = False
 ultimo_aviso_time = 0  # Guardamos el momento del último grito
 
 # 1. Configuración de Voz
+# Usamos Threading (multihilo) para que el proceso de generar y reproducir 
+# la voz corra en paralelo. Así evitamos que el video se detenga mientras se habla.
 def hablar(texto):
     def thread_speech():
         # SI YA ESTÁ HABLANDO, NO HAGAS NADA (ESTO EVITA QUE SE SUPERPONGAN)
