@@ -36,7 +36,7 @@ def hablar(texto):
     threading.Thread(target=thread_speech, daemon=True).start()
     
 # 2. Configuración de IA (YOLOv8)
-# Cargamos el modelo normal (se bajará solo si está ya descargado)
+# Cargamos el modelo normal (se bajará solo si no está ya descargado)
 model = YOLO('yolov8n.pt') 
 
 # 3. Definimos la función para el rectángulo con bordes redondeados
