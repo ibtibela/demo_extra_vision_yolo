@@ -1,27 +1,33 @@
 import cv2
 from ultralytics import YOLO
-import pyttsx3
+import os
+from gtts import gTTS
 import threading
 
+# Para que no se superpongan los avisos
+bloqueo_voz = threading.Lock()
 # 1. Configuración de Voz
-engine = pyttsx3.init()
-# Forzamos la voz ID 26 que es la de España
-voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[26].id)
-# Bajamos un poco la velocidad para que se entienda perfecto
-engine.setProperty('rate', 145)
 
 def hablar(texto):
     def thread_speech():
-        # En Linux, a veces es mejor re-inicializar dentro del hilo para evitar bloqueos
-        local_engine = pyttsx3.init()
-        local_engine.setProperty('voice', local_engine.getProperty('voices')[26].id)
-        local_engine.setProperty('rate', 145)
-        local_engine.say(texto)
-        local_engine.runAndWait()
-    threading.Thread(target=thread_speech).start()
+        # SI YA ESTÁ HABLANDO, NO HAGAS NADA (ESTO EVITA QUE SE SUPERPONGAN)
+        if bloqueo_voz.locked():
+            return
+            
+        with bloqueo_voz: # "Echa la llave" mientras habla
+            try:
+                tts = gTTS(text=texto, lang='es')
+                archivo = "alerta.mp3"
+                tts.save(archivo)
+                os.system(f"mpg123 -q {archivo}")
+                # Esperamos 1 segundo extra para que respire antes de la siguiente
+                import time
+                time.sleep(1) 
+            except Exception as e:
+                print(f"Error en la voz: {e}")
 
-# 2. Configuración de IA (YOLOv8)
+    # Añadimos daemon=True para que el hilo muera si cierras el programa
+    threading.Thread(target=thread_speech, daemon=True).start()# 2. Configuración de IA (YOLOv8)
 # Cargamos el modelo normal (se bajará solo si no lo tienes)
 model = YOLO('yolov8n.pt') 
 
@@ -38,7 +44,7 @@ while True:
     ret, frame = cap.read()
     if not ret: break
 
-    # Detección usando tu gráfica NVIDIA
+    # Detección usando gráfica NVIDIA
     results = model(frame, stream=True, device=0, verbose=False)
     
     contador = 0
@@ -73,12 +79,10 @@ while True:
     cv2.putText(frame, mensaje, (20, 80), 
                 cv2.FONT_HERSHEY_SIMPLEX, 1, color_texto, 2)
 
-    cv2.imshow("MSI Sentinel - Control de Aforo", frame)
+    cv2.imshow("Control de Aforo", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-voices = engine.getProperty('voices')
-for i, v in enumerate(voices):
-    print(f"{i}: {v.name} - {v.languages}")
+
 cap.release()
 cv2.destroyAllWindows()
