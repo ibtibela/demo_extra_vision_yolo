@@ -5,7 +5,9 @@ from gtts import gTTS
 import threading
 import time
 
-# Para que no se superpongan los avisos
+# Cargamos el detector de caras de OpenCV
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')# Para que no se superpongan los avisos
+
 bloqueo_voz = threading.Lock()
 
 alerta_activa = False
@@ -90,6 +92,30 @@ while True:
                 contador += 1
                 # Dibujamos el cuadro alrededor de la persona
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
+                
+                # --- NUEVA LÓGICA DE PRIVACIDAD CON HAAR CASCADES ---
+                # Cortamos la zona de la persona para buscar la cara dentro
+                persona_roi = frame[max(0,y1):y2, max(0,x1):x2]
+                
+                if persona_roi.size > 0:
+                    # Convertimos a gris el recorte para detectar mejor la cara
+                    gris_roi = cv2.cvtColor(persona_roi, cv2.COLOR_BGR2GRAY)
+                    
+                    # Detectamos caras (ajustamos parámetros para evitar falsos positivos)
+                    caras = face_cascade.detectMultiScale(gris_roi, 1.1, 5, minSize=(30, 30))
+                    
+                    for (cx, cy, cw, ch) in caras:
+                        # Calculamos las coordenadas globales de la cara detectada
+                        fx1, fy1 = x1 + cx, y1 + cy
+                        fx2, fy2 = fx1 + cw, fy1 + ch
+                        
+                        # Extraemos el trozo de la cara de la imagen original
+                        cara_img = frame[max(0,fy1):fy2, max(0,fx1):fx2]
+                        
+                        if cara_img.size > 0:
+                            # Aplicamos el emborronado
+                            frame[max(0,fy1):fy2, max(0,fx1):fx2] = cv2.GaussianBlur(cara_img, (99, 99), 30)
+                                    
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
                 cv2.putText(frame, "Persona", (x1, y1 - 10), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
