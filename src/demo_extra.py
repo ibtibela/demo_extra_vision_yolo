@@ -239,7 +239,7 @@ while True:
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, color_cola, 2)
 
     # Instrucción de uso (en gris pequeñito)
-    cv2.putText(frame, "Ajuste el limite del aforo maximo con la barra deslizante", (20, 135), 
+    cv2.putText(frame, "Ajuste los límites con la barra deslizante", (20, 135), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1)
 
     # --- REGISTRO EN EXCEL (LOG) ---
@@ -270,41 +270,35 @@ cv2.destroyAllWindows()
 print("\n--- GENERANDO REPORTE VISUAL FINAL ---")
 
 try:
-    # 1. Cargamos los datos del Excel que ha ido creando el programa
     df = pd.read_csv(archivo_log)
-    
-    # 2. Convertimos la columna de tiempo a un formato que Python entienda
     df['Fecha y Hora'] = pd.to_datetime(df['Fecha y Hora'])
     
-    # 3. Creamos el lienzo de la gráfica
     plt.figure(figsize=(12, 6))
     
-    # 4. Dibujamos la línea de personas (Azul) y la del límite (Roja)
-    plt.plot(df['Fecha y Hora'], df['N. Personas'], label='Personas Detectadas', color='blue', linewidth=2)
-    plt.step(df['Fecha y Hora'], df['Limite Aforo'], label='Límite de Aforo', color='red', linestyle='--', where='post')
+    # Línea de Aforo Total (Azul)
+    plt.plot(df['Fecha y Hora'], df['N. Personas'], label='Personas Total', color='blue', linewidth=2)
     
-    # 5. Rellenamos de rojo cuando se supera el aforo para que se vea el "problema"
+    # LÍNEA NUEVA: Gente en Cola (Naranja)
+    plt.plot(df['Fecha y Hora'], df['Gente en Cola'], label='Gente en Cola', color='orange', linewidth=2, linestyle='-')
+    
+    # Línea de Límite de Aforo (Roja)
+    plt.step(df['Fecha y Hora'], df['Limite Aforo'], label='Límite Aforo', color='red', linestyle='--', where='post')
+    
     plt.fill_between(df['Fecha y Hora'], df['N. Personas'], df['Limite Aforo'], 
                      where=(df['N. Personas'] > df['Limite Aforo']),
-                     color='red', alpha=0.3, label='Exceso de Aforo')
+                     color='red', alpha=0.2, label='Exceso Aforo')
 
-    # 6. Estética: Títulos y etiquetas
-    plt.title('Reporte de Ocupación', fontsize=16)
+    plt.title('Reporte de Ocupación y Colas en Caja', fontsize=16)
     plt.xlabel('Hora del día', fontsize=12)
     plt.ylabel('Número de Personas', fontsize=12)
     plt.legend(loc='upper left')
     plt.grid(True, linestyle=':', alpha=0.6)
-    
-    # Rotamos las fechas para que no se amontonen
     plt.xticks(rotation=45)
     plt.tight_layout()
 
-    # 7. Guardamos el reporte como imagen para que el dueño lo vea luego
     nombre_foto = f"reporte_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     plt.savefig(nombre_foto)
     print(f"✅ Reporte guardado con éxito: {nombre_foto}")
-    
-    # 8. Mostramos la gráfica en una ventana emergente
     plt.show()
 
 except Exception as e:
