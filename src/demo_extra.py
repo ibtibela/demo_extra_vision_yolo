@@ -5,6 +5,8 @@ import os
 from gtts import gTTS
 import threading
 import time
+import csv
+from datetime import datetime
 
 # Cargamos el detector de caras de OpenCV
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -64,6 +66,9 @@ cap = cv2.VideoCapture(0)
 
 AFORO_MAXIMO = 3
 alerta_activa = False
+archivo_log = "registro_aforo.csv"
+ultimo_registro_tiempo = 0
+intervalo_log = 10  # Registra datos cada 10 segundos
 
 print("--- SISTEMA DE CONTROL DE AFORO INICIADO ---")
 print(f"Límite permitido: {AFORO_MAXIMO} personas.")
@@ -189,6 +194,22 @@ while True:
     cv2.putText(frame, "Ajuste el limite con la barra deslizante", (20, 100), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1)
 
+    # --- REGISTRO EN EXCEL (LOG) ---
+    tiempo_actual = time.time()
+    if tiempo_actual - ultimo_registro_tiempo > intervalo_log:
+        fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        estado_aforo = "ALERTA" if contador > AFORO_MAXIMO else "NORMAL"
+        
+        with open(archivo_log, mode='a', newline='') as f:
+            escritor = csv.writer(f)
+            if f.tell() == 0:
+                # Poner los títulos si el archivo si está vacío
+                escritor.writerow(["Fecha y Hora", "N. Personas", "Limite Aforo", "Estado"])
+            
+            # Datos incluyendo el límite que el usuario tiene puesto en la barra
+            escritor.writerow([fecha_hora, contador, AFORO_MAXIMO, estado_aforo])
+            
+        ultimo_registro_tiempo = tiempo_actual
     # --- MOSTRAR VENTANA ---
     cv2.imshow("Control de Aforo", frame)
 
