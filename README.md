@@ -8,6 +8,7 @@ Este proyecto implementa un sistema de visión artificial en tiempo real para el
 - **Control Dinámico:** Incluye una barra deslizante (*Trackbar*) para ajustar el límite de aforo sin detener el programa.
 - **Alertas de Voz Inteligentes:** Emite un aviso por voz inmediato al detectar el aforo excedido; si tras un tiempo la situación persiste, el sistema lanza recordatorios periódicos para asegurar el cumplimiento de la norma.
 - **Multihilo (Threading):** Implementado para separar la lógica de visión artificial de la de audio. Esto garantiza que la tasa de FPS se mantenga constante aunque el sistema esté emitiendo alertas sonoras.
+* **Privacidad Proactiva:** Difuminado elíptico de rostros para anonimización.
 
 ## 🛠️ Requisitos e Instalación
 
