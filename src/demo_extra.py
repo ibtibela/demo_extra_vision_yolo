@@ -67,6 +67,7 @@ def rectangulo_redondeado(img, pt1, pt2, color, espesor, radio):
 cap = cv2.VideoCapture(0)
 
 AFORO_MAXIMO = 3
+limite_cola_max = 2
 alerta_activa = False
 archivo_log = "registro_aforo.csv"
 ultimo_registro_tiempo = 0
@@ -84,16 +85,29 @@ def nada(x): pass
 
 # Crear la barra (Nombre, Ventana, Valor inicial, Valor máximo, Función)
 cv2.createTrackbar("Limite Aforo", "Control de Aforo", AFORO_MAXIMO, 20, nada)
+cv2.createTrackbar("Max Cola", "Control de Aforo", limite_cola_max, 10, nada) 
+
+# Variables para la cola
+contador_cola = 0
+limite_cola_max = 2  # Si hay más de 2 en la mitad derecha, alerta de cola
+ultimo_aviso_cola = 0
 
 while True:
     ret, frame = cap.read()
     if not ret: break
     # ACTUALIZAR EL LÍMITE SEGÚN LA BARRA DESLIZANTE
     AFORO_MAXIMO = cv2.getTrackbarPos("Limite Aforo", "Control de Aforo")
+    limite_cola_max = cv2.getTrackbarPos("Max Cola", "Control de Aforo")
     # Detección usando gráfica NVIDIA
     results = model(frame, stream=True, device=0, verbose=False)
     
     contador = 0
+    contador_cola = 0
+
+    # Calculamos la mitad de la pantalla
+    alto, ancho, _ = frame.shape
+    mitad_x = ancho // 2    
+
     for r in results:
         for box in r.boxes:
             cls = int(box.cls[0])
@@ -102,6 +116,15 @@ while True:
                 contador += 1
                 # Dibujamos el cuadro alrededor de la persona
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
+
+                # Calculamos el centro de la persona para saber en qué zona está
+                centro_x = (x1 + x2) // 2
+                
+                if centro_x > mitad_x:
+                    contador_cola += 1
+                    color_caja = (0, 165, 255) # Naranja para la cola
+                else:
+                    color_caja = (255, 0, 0) # Azul para paso normal
                 
                 # --- NUEVA LÓGICA DE PRIVACIDAD CON HAAR CASCADES ---
                 # Cortamos la zona de la persona para buscar la cara dentro
@@ -155,6 +178,14 @@ while True:
                 cv2.putText(frame, "Persona", (x1, y1 - 10), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
+    # --- LOGICA DE COLA ---
+    if contador_cola > limite_cola_max:
+        estado_cola = "SATURADA"
+        color_cola = (0, 0, 255)  # Rojo
+    else:
+        estado_cola = "FLUIDA"
+        color_cola = (0, 255, 0)  # Verde
+
     # Lógica de Aforo Insistente
     if contador > AFORO_MAXIMO:
         color_texto = (0, 0, 255) # Rojo si hay exceso
@@ -178,22 +209,37 @@ while True:
         ultimo_aviso_time = 0 # Importante: reseteamos para que la próxima vez sea instantáneo
 
     # --- PANEL DE CONTROL VISUAL ---
+    # Dibujamos una línea divisoria y un suelo sombreado para la "Caja"
+    # Línea divisoria
+    cv2.line(frame, (mitad_x, 0), (mitad_x, alto), (255, 255, 255), 1)
+    
+    # Sombreado para la zona de caja (lado derecho)
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (mitad_x, 0), (ancho, alto), (0, 165, 255), -1)
+    cv2.addWeighted(overlay, 0.1, frame, 0.9, 0, frame) # Transparencia al 10%
+    
+    cv2.putText(frame, "ZONA DE COLA", (mitad_x +100, 40), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 165, 255), 2)
+    
     # Dibujamos un rectángulo semi-transparente o negro para el fondo
     # (x1, y1), (x2, y2), color, grosor (-1 es relleno)
     # (imagen, top_left, bottom_right, color, espesor -1 para relleno, radio de curvatura)
-    rectangulo_redondeado(frame, (10, 10), (380, 115), (0, 0, 0), -1, 15)
+    rectangulo_redondeado(frame, (10, 10), (400, 160), (0, 0, 0), -1, 15)
 
-    # 2. Contador de personas (Cambiamos el color según el estado)
+    # Contador de personas (Cambiamos el color según el estado)
     cv2.putText(frame, f"Personas detectadas: {contador}", (20, 40), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-    # 4. Estado del Aforo y Límite
+    # Estado del Aforo y Límite
     # Usamos 'mensaje' y 'color_texto' que ya se calcularon en la lógica de if/else
     cv2.putText(frame, f"{mensaje} (Max: {AFORO_MAXIMO})", (20, 75), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, color_texto, 2)
+    # Estado de la cola
+    cv2.putText(frame, f"Cola Caja: {contador_cola} ({estado_cola} (Max: {limite_cola_max}))", (20, 105), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, color_cola, 2)
 
-    # 5. Instrucción de uso (en gris pequeñito)
-    cv2.putText(frame, "Ajuste el limite con la barra deslizante", (20, 100), 
+    # Instrucción de uso (en gris pequeñito)
+    cv2.putText(frame, "Ajuste el limite del aforo maximo con la barra deslizante", (20, 135), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1)
 
     # --- REGISTRO EN EXCEL (LOG) ---
@@ -206,10 +252,10 @@ while True:
             escritor = csv.writer(f)
             if f.tell() == 0:
                 # Poner los títulos si el archivo si está vacío
-                escritor.writerow(["Fecha y Hora", "N. Personas", "Limite Aforo", "Estado"])
+                escritor.writerow(["Fecha y Hora", "N. Personas", "Limite Aforo", "Estado", "Gente en Cola", "Limite Cola"])
             
             # Datos incluyendo el límite que el usuario tiene puesto en la barra
-            escritor.writerow([fecha_hora, contador, AFORO_MAXIMO, estado_aforo])
+            escritor.writerow([fecha_hora, contador, AFORO_MAXIMO, estado_aforo, contador_cola, limite_cola_max])
             
         ultimo_registro_tiempo = tiempo_actual
     # --- MOSTRAR VENTANA ---
