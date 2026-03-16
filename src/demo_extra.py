@@ -239,7 +239,7 @@ while True:
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, color_cola, 2)
 
     # Instrucción de uso (en gris pequeñito)
-    cv2.putText(frame, "Ajuste los límites con la barra deslizante", (20, 135), 
+    cv2.putText(frame, "Ajuste los limites con la barra deslizante", (20, 135), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1)
 
     # --- REGISTRO EN EXCEL (LOG) ---
@@ -247,18 +247,18 @@ while True:
     if tiempo_actual - ultimo_registro_tiempo > intervalo_log:
         fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         estado_aforo = "ALERTA" if contador > AFORO_MAXIMO else "NORMAL"
-        
-        with open(archivo_log, mode='a', newline='') as f:
+
+        modo = 'a' if os.path.exists(archivo_log) and ultimo_registro_tiempo != 0 else 'w'
+
+        with open(archivo_log, mode=modo, newline='') as f:
             escritor = csv.writer(f)
-            if f.tell() == 0:
-                # Poner los títulos si el archivo si está vacío
+            if modo == 'w':
+                # Al ser nuevo ('w'), ponemos los títulos
                 escritor.writerow(["Fecha y Hora", "N. Personas", "Limite Aforo", "Estado", "Gente en Cola", "Limite Cola"])
             
-            # Datos incluyendo el límite que el usuario tiene puesto en la barra
             escritor.writerow([fecha_hora, contador, AFORO_MAXIMO, estado_aforo, contador_cola, limite_cola_max])
             
-        ultimo_registro_tiempo = tiempo_actual
-    # --- MOSTRAR VENTANA ---
+        ultimo_registro_tiempo = tiempo_actual    # --- MOSTRAR VENTANA ---
     cv2.imshow("Control de Aforo", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
