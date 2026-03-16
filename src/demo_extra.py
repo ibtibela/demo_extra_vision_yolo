@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from ultralytics import YOLO
 import os
 from gtts import gTTS
@@ -6,16 +7,18 @@ import threading
 import time
 
 # Cargamos el detector de caras de OpenCV
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')# Para que no se superpongan los avisos
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
+# Para que no se superpongan los avisos
 bloqueo_voz = threading.Lock()
 
 alerta_activa = False
-ultimo_aviso_time = 0  # Guardamos el momento del último grito
+ultimo_aviso_time = 0  # Guardamos el momento del último aviso por voz
 
-# 1. Configuración de Voz
-# Usamos Threading (multihilo) para que el proceso de generar y reproducir 
-# la voz corra en paralelo. Así evitamos que el video se detenga mientras se habla.
+# 1. Configuración de Voz (Sistema Multihilo)
+# Definimos la función en un hilo separado (Thread) para no bloquear el flujo principal.
+# Mientras este hilo se encarga de generar el audio y reproducirlo,
+# el hilo principal (el bucle 'while True' del video) sigue procesando frames sin detenerse.
 def hablar(texto):
     def thread_speech():
         # SI YA ESTÁ HABLANDO, NO HAGAS NADA (ESTO EVITA QUE SE SUPERPONGAN)
@@ -39,7 +42,7 @@ def hablar(texto):
     
 # 2. Configuración de IA (YOLOv8)
 # Cargamos el modelo normal (se bajará solo si no está ya descargado)
-model = YOLO('yolov8n.pt') 
+model = YOLO('yolov8m.pt') 
 
 # 3. Definimos la función para el rectángulo con bordes redondeados
 def rectangulo_redondeado(img, pt1, pt2, color, espesor, radio):
@@ -102,6 +105,7 @@ while True:
                     gris_roi = cv2.cvtColor(persona_roi, cv2.COLOR_BGR2GRAY)
                     
                     # Detectamos caras (ajustamos parámetros para evitar falsos positivos)
+                    # detectMultiScale(imagen, factor_escala, min_vecinos, tamaño_minimo)
                     caras = face_cascade.detectMultiScale(gris_roi, 1.1, 5, minSize=(30, 30))
                     
                     for (cx, cy, cw, ch) in caras:
@@ -110,11 +114,35 @@ while True:
                         fx2, fy2 = fx1 + cw, fy1 + ch
                         
                         # Extraemos el trozo de la cara de la imagen original
-                        cara_img = frame[max(0,fy1):fy2, max(0,fx1):fx2]
+                        cara_roi = frame[max(0,fy1):fy2, max(0,fx1):fx2]
                         
-                        if cara_img.size > 0:
-                            # Aplicamos el emborronado
-                            frame[max(0,fy1):fy2, max(0,fx1):fx2] = cv2.GaussianBlur(cara_img, (99, 99), 30)
+                        if cara_roi.size > 0:
+                            h, w, _ = cara_roi.shape
+                            # Creamos la máscara en forma de elipse
+                            # Creamos una imagen negra del mismo tamaño que la cara
+                            mask = np.zeros((h, w), dtype=np.uint8)
+                            
+                            # Dibujamos un óvalo blanco (255) que ocupe todo el recorte
+                            centro = (w // 2, h // 2)
+                            ejes = (w // 2, h // 2)
+                            cv2.ellipse(mask, centro, ejes, 0, 0, 360, 255, -1)
+                            
+                            # Suavizamos la máscara para que el borde del borroso no sea brusco
+                            mask = cv2.GaussianBlur(mask, (21, 21), 11)
+                            
+                            # 3. Creamos la versión borrosa de la cara
+                            cara_borrosa = cv2.GaussianBlur(cara_roi, (99, 99), 30)
+                            
+                            # 4. Mezclamos (Blending): donde la máscara es blanca, ponemos borroso
+                            # Convertimos máscara a escala 0-1
+                            mask_norm = mask.astype(float) / 255.0
+                            
+                            # Aplicamos la mezcla canal por canal (B, G, R)
+                            for c in range(3):
+                                cara_roi[:, :, c] = (mask_norm * cara_borrosa[:, :, c] + 
+                                                   (1.0 - mask_norm) * cara_roi[:, :, c])
+                            # 5. Pegamos el resultado en el frame
+                            frame[max(0,fy1):fy2, max(0,fx1):fx2] = cara_roi
                                     
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
                 cv2.putText(frame, "Persona", (x1, y1 - 10), 
