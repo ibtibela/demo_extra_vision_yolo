@@ -17,11 +17,16 @@ Este proyecto implementa un sistema de visión artificial en tiempo real para el
 * **Optimiza tus turnos:** Con los datos del Excel, puedes ver qué horas son las más críticas y poner a tus empleados solo cuando realmente hace falta, ahorrando dinero.
 * **Privacidad y Confianza:** Al emborronar las caras, cumples con la ley (GDPR) y tus clientes se sienten más cómodos comprando.
 
-## 📊 Decisiones rápidas con Gráficas Visuales
-Al cerrar el programa, el sistema genera una **gráfica comparativa** que permite al dueño tomar decisiones de un vistazo:
+## 📊 Analítica Inteligente: Tu negocio en un vistazo
+Al cerrar el programa, el sistema genera automáticamente una **gráfica comparativa de alta precisión**. Ya no tienes que adivinar qué ha pasado en tu tienda; ahora tienes los datos para demostrarlo:
 
-* **Aforo vs Cola:** Compara cuánta gente hay paseando frente a cuánta hay en caja. Si hay mucha gente en tienda pero poca en cola, tus promociones funcionan. Si la cola siempre está llena, necesitas otro cajero.
-* **Detección de "Horas Críticas":** Mira de un golpe en qué momentos del día se superaron los límites para reforzar el equipo en el momento justo.
+![Reporte de Ocupación y Colas](reporte_ocupacion_y_colas_en_caja.png)
+
+* **Optimización del flujo Aforo vs. Cola:** Compara en tiempo real cuánta gente hay "mirando" frente a cuánta hay "comprando". 
+    * *Si el aforo es alto pero la cola es baja:* Tus promociones están atrayendo gente, pero no están convirtiendo en ventas.
+    * *Si la cola está siempre en el límite:* Estás perdiendo dinero por lentitud en caja. ¡Es hora de abrir otra!
+* **Identificación de "Fugas de Clientes":** Analizando estas gráficas, puedes saber exactamente cuándo necesitas reforzar las cajas para que la experiencia del cliente sea siempre fluida y evitar que la gente se marche al ver demasiada espera.
+* **Planificación de Turnos Basada en Datos:** Deja de pagar horas extra innecesarias. Identifica tus **"Horas Críticas"** reales y refuerza el equipo solo cuando la gráfica te indique que la saturación es recurrente.
 
 ## 🛠️ Requisitos e Instalación
 
