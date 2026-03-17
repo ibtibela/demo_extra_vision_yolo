@@ -20,7 +20,7 @@ Este proyecto implementa un sistema de visión artificial en tiempo real para el
 ### 📊 Analítica Inteligente: Tu negocio en un vistazo
 Al cerrar el programa, el sistema genera automáticamente un **Panel de Control Visual** con dos gráficas de alta precisión. Ya no tienes que adivinar qué ha pasado; ahora tienes los datos para tomar el mando:
 
-![Reporte de Ocupación y Colas](reporte_aforo_y_colas_en_caja.png)
+![Reporte de Ocupación y Colas](reporte_ocupacion_y_colas_en_caja.png)
 
 * **Monitor 1: Control de Aforo Total:** Visualiza el flujo de personas en tienda. La zona sombreada en rojo marca los momentos de saturación donde la seguridad o la comodidad de tus clientes estuvo en riesgo.
 * **Monitor 2: Gestión de Cola en Caja:** Un gráfico dedicado a medir el "estrés" de tus cajas. Las zonas naranjas indican cuándo tus clientes empezaron a esperar más de la cuenta.
