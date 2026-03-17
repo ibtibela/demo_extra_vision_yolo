@@ -78,14 +78,14 @@ print(f"Límite permitido: {AFORO_MAXIMO} personas.")
 
 # Añadir barra deslizante para poder elegir el aforo máximo
 # Crear la ventana con un nombre fijo
-cv2.namedWindow("Control de Aforo")
+cv2.namedWindow("Control de Aforo y Cola en Caja")
 
 # Función necesaria para que funcione la barra (no hace nada)
 def nada(x): pass
 
 # Crear la barra (Nombre, Ventana, Valor inicial, Valor máximo, Función)
-cv2.createTrackbar("Limite Aforo", "Control de Aforo", AFORO_MAXIMO, 20, nada)
-cv2.createTrackbar("Max Cola", "Control de Aforo", limite_cola_max, 10, nada) 
+cv2.createTrackbar("Limite Aforo", "Control de Aforo y Cola en Caja", AFORO_MAXIMO, 20, nada)
+cv2.createTrackbar("Max Cola", "Control de Aforo y Cola en Caja", limite_cola_max, 10, nada) 
 
 # Variables para la cola
 contador_cola = 0
@@ -96,8 +96,8 @@ while True:
     ret, frame = cap.read()
     if not ret: break
     # ACTUALIZAR EL LÍMITE SEGÚN LA BARRA DESLIZANTE
-    AFORO_MAXIMO = cv2.getTrackbarPos("Limite Aforo", "Control de Aforo")
-    limite_cola_max = cv2.getTrackbarPos("Max Cola", "Control de Aforo")
+    AFORO_MAXIMO = cv2.getTrackbarPos("Limite Aforo", "Control de Aforo y Cola en Caja")
+    limite_cola_max = cv2.getTrackbarPos("Max Cola", "Control de Aforo y Cola en Caja")
     # Detección usando gráfica NVIDIA
     results = model(frame, stream=True, device=0, verbose=False)
     
@@ -246,7 +246,9 @@ while True:
     tiempo_actual = time.time()
     if tiempo_actual - ultimo_registro_tiempo > intervalo_log:
         fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         estado_aforo = "ALERTA" if contador > AFORO_MAXIMO else "NORMAL"
+        estado_cola = "SATURADA" if contador_cola > limite_cola_max else "NORMAL"
 
         modo = 'a' if os.path.exists(archivo_log) and ultimo_registro_tiempo != 0 else 'w'
 
@@ -254,12 +256,13 @@ while True:
             escritor = csv.writer(f)
             if modo == 'w':
                 # Al ser nuevo ('w'), ponemos los títulos
-                escritor.writerow(["Fecha y Hora", "N. Personas", "Limite Aforo", "Estado", "Gente en Cola", "Limite Cola"])
+                escritor.writerow(["Fecha y Hora", "N. Personas", "Limite Aforo", "Estado Aforo", "Gente en Cola", "Limite Cola", "Estado Cola"])
             
-            escritor.writerow([fecha_hora, contador, AFORO_MAXIMO, estado_aforo, contador_cola, limite_cola_max])
+            escritor.writerow([fecha_hora, contador, AFORO_MAXIMO, estado_aforo, contador_cola, limite_cola_max, estado_cola])
             
-        ultimo_registro_tiempo = tiempo_actual    # --- MOSTRAR VENTANA ---
-    cv2.imshow("Control de Aforo", frame)
+        ultimo_registro_tiempo = tiempo_actual    
+        # --- MOSTRAR VENTANA ---
+    cv2.imshow("Control de Aforo y Cola en Caja", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
@@ -313,3 +316,4 @@ try:
 
 except Exception as e:
     print(f"❌ Error al generar el reporte visual: {e}")
+    print("Consejo: Asegúrate de que el programa haya funcionado el tiempo suficiente para recoger datos.")
