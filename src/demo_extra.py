@@ -273,33 +273,43 @@ try:
     df = pd.read_csv(archivo_log)
     df['Fecha y Hora'] = pd.to_datetime(df['Fecha y Hora'])
     
-    plt.figure(figsize=(12, 6))
-    
-    # Línea de Aforo Total (Azul)
-    plt.plot(df['Fecha y Hora'], df['N. Personas'], label='Personas Total', color='blue', linewidth=2)
-    
-    # LÍNEA NUEVA: Gente en Cola (Naranja)
-    plt.plot(df['Fecha y Hora'], df['Gente en Cola'], label='Gente en Cola', color='orange', linewidth=2, linestyle='-')
-    
-    # Línea de Límite de Aforo (Roja)
-    plt.step(df['Fecha y Hora'], df['Limite Aforo'], label='Límite Aforo', color='red', linestyle='--', where='post')
-    
-    plt.fill_between(df['Fecha y Hora'], df['N. Personas'], df['Limite Aforo'], 
-                     where=(df['N. Personas'] > df['Limite Aforo']),
-                     color='red', alpha=0.2, label='Exceso Aforo')
+    # Creamos una figura con dos subgráficas (una arriba de otra)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
+    plt.subplots_adjust(hspace=0.3)
 
-    plt.title('Reporte de Ocupación y Colas en Caja', fontsize=16)
-    plt.xlabel('Hora del día', fontsize=12)
-    plt.ylabel('Número de Personas', fontsize=12)
-    plt.legend(loc='upper left')
-    plt.grid(True, linestyle=':', alpha=0.6)
+    # --- GRÁFICA 1: AFORO TOTAL EN TIENDA ---
+    ax1.plot(df['Fecha y Hora'], df['N. Personas'], label='Gente en Tienda', color='blue', linewidth=2)
+    ax1.step(df['Fecha y Hora'], df['Limite Aforo'], label='Límite Aforo', color='red', linestyle='--', where='post')
+    # Pintar el exceso de aforo
+    ax1.fill_between(df['Fecha y Hora'], df['N. Personas'], df['Limite Aforo'], 
+                     where=(df['N. Personas'] > df['Limite Aforo']),
+                     color='red', alpha=0.3, label='Exceso Aforo')
+    ax1.set_title('Control de Aforo Total', fontsize=14, fontweight='bold')
+    ax1.set_ylabel('Nº Personas')
+    ax1.legend(loc='upper left')
+    ax1.grid(True, linestyle=':', alpha=0.6)
+
+    # --- GRÁFICA 2: GESTIÓN DE COLA EN CAJA ---
+    ax2.plot(df['Fecha y Hora'], df['Gente en Cola'], label='Gente en Cola', color='orange', linewidth=2)
+    ax2.step(df['Fecha y Hora'], df['Limite Cola'], label='Límite Cola', color='darkred', linestyle='--', where='post')
+    # Pintar el exceso de cola
+    ax2.fill_between(df['Fecha y Hora'], df['Gente en Cola'], df['Limite Cola'], 
+                     where=(df['Gente en Cola'] > df['Limite Cola']),
+                     color='orange', alpha=0.3, label='Cola Saturada')
+    ax2.set_title('Estado de la Cola en Caja', fontsize=14, fontweight='bold')
+    ax2.set_ylabel('Nº Personas en Cola')
+    ax2.set_xlabel('Hora del día')
+    ax2.legend(loc='upper left')
+    ax2.grid(True, linestyle=':', alpha=0.6)
+
+    # Formatear fechas en el eje X
     plt.xticks(rotation=45)
     plt.tight_layout()
 
-    nombre_foto = f"reporte_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    nombre_foto = f"reporte_ocupacion_y_colas_en_caja.png"
     plt.savefig(nombre_foto)
-    print(f"✅ Reporte guardado con éxito: {nombre_foto}")
+    print(f"✅ Reporte doble guardado con éxito: {nombre_foto}")
     plt.show()
 
 except Exception as e:
-    print(f"❌ No se pudo generar el reporte: {e}")
+    print(f"❌ Error al generar el reporte visual: {e}")

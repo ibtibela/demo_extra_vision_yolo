@@ -14,20 +14,21 @@ Este proyecto implementa un sistema de visión artificial en tiempo real para el
 
 ## 🚀 ¿Por qué esto ayuda a vender más?
 * **Evita colas desesperantes:** La gran mayoría de los clientes se va si ve una cola muy larga. Este sistema te avisa antes de que pierdas la venta.
-* **Optimiza tus turnos:** Con los datos del Excel, puedes ver qué horas son las más críticas y poner a tus empleados solo cuando realmente hace falta, ahorrando dinero.
+* **Optimiza tus turnos:** Con los datos del Excel convertidos en gráficas, puedes ver qué horas son las más críticas y poner a tus empleados solo cuando realmente hace falta, ahorrando dinero.
 * **Privacidad y Confianza:** Al emborronar las caras, cumples con la ley (GDPR) y tus clientes se sienten más cómodos comprando.
 
-## 📊 Analítica Inteligente: Tu negocio en un vistazo
-Al cerrar el programa, el sistema genera automáticamente una **gráfica comparativa de alta precisión**. Ya no tienes que adivinar qué ha pasado en tu tienda; ahora tienes los datos para demostrarlo:
+### 📊 Analítica Inteligente: Tu negocio en un vistazo
+Al cerrar el programa, el sistema genera automáticamente un **Panel de Control Visual** con dos gráficas de alta precisión. Ya no tienes que adivinar qué ha pasado; ahora tienes los datos para tomar el mando:
 
-![Reporte de Ocupación y Colas](reporte_ocupacion_y_colas_en_caja.png)
+![Reporte de Ocupación y Colas](reporte_aforo_y_colas_en_caja.png)
 
-* **Optimización del flujo Aforo vs. Cola:** Compara en tiempo real cuánta gente hay "mirando" frente a cuánta hay "comprando". 
-    * *Si el aforo es alto pero la cola es baja:* Tus promociones están atrayendo gente, pero no están convirtiendo en ventas.
-    * *Si la cola está siempre en el límite:* Estás perdiendo dinero por lentitud en caja. ¡Es hora de abrir otra!
-* **Identificación de "Fugas de Clientes":** Analizando estas gráficas, puedes saber exactamente cuándo necesitas reforzar las cajas para que la experiencia del cliente sea siempre fluida y evitar que la gente se marche al ver demasiada espera.
-* **Planificación de Turnos Basada en Datos:** Deja de pagar horas extra innecesarias. Identifica tus **"Horas Críticas"** reales y refuerza el equipo solo cuando la gráfica te indique que la saturación es recurrente.
-
+* **Monitor 1: Control de Aforo Total:** Visualiza el flujo de personas en tienda. La zona sombreada en rojo marca los momentos de saturación donde la seguridad o la comodidad de tus clientes estuvo en riesgo.
+* **Monitor 2: Gestión de Cola en Caja:** Un gráfico dedicado a medir el "estrés" de tus cajas. Las zonas naranjas indican cuándo tus clientes empezaron a esperar más de la cuenta.
+* **Detección de "Ventas Perdidas":** Al cruzar ambas gráficas, puedes identificar cuándo la cola creció rápido y la gente empezó a marcharse. Es el sensor perfecto para frenar la fuga de clientes por desesperación.
+* **Ahorro en Costes de Personal:** Deja de pagar horas extra por intuición. Identifica tus **"Horas Críticas"** reales para reforzar el equipo solo cuando la gráfica muestra saturación recurrente, optimizando tu presupuesto.
+* **Análisis de Eficiencia y Conversión:** Comparar ambos monitores te da la clave real de tu negocio:
+    * *Tienda media pero cola saturada:* Tienes un **cuello de botella** técnico o de personal que frena tus ingresos.
+    * *Tienda llena pero cola vacía:* O tus cajeros son extremadamente rápidos, o tienes un problema de **conversión** (la gente entra pero no encuentra qué comprar).
 ## 🛠️ Requisitos e Instalación
 
 ### 1. Sistema Operativo y Audio
