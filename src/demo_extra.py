@@ -9,6 +9,7 @@ import csv
 from datetime import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.ticker import MaxNLocator # para poder poner solo números enteros en el eje y
 
 # Cargamos el detector de caras de OpenCV
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -251,7 +252,7 @@ while True:
         estado_cola = "SATURADA" if contador_cola > limite_cola_max else "NORMAL"
 
         modo = 'a' if os.path.exists(archivo_log) and ultimo_registro_tiempo != 0 else 'w'
-
+        # Escritura del archivo csv
         with open(archivo_log, mode=modo, newline='') as f:
             escritor = csv.writer(f)
             if modo == 'w':
@@ -281,7 +282,7 @@ try:
     plt.subplots_adjust(hspace=0.3)
 
     # --- GRÁFICA 1: AFORO TOTAL EN TIENDA ---
-    ax1.plot(df['Fecha y Hora'], df['N. Personas'], label='Gente en Tienda', color='blue', linewidth=2)
+    ax1.step(df['Fecha y Hora'], df['N. Personas'], label='Gente en Tienda', color='blue', linewidth=2)
     ax1.step(df['Fecha y Hora'], df['Limite Aforo'], label='Límite Aforo', color='red', linestyle='--', where='post')
     # Pintar el exceso de aforo
     ax1.fill_between(df['Fecha y Hora'], df['N. Personas'], df['Limite Aforo'], 
@@ -293,7 +294,7 @@ try:
     ax1.grid(True, linestyle=':', alpha=0.6)
 
     # --- GRÁFICA 2: GESTIÓN DE COLA EN CAJA ---
-    ax2.plot(df['Fecha y Hora'], df['Gente en Cola'], label='Gente en Cola', color='orange', linewidth=2)
+    ax2.step(df['Fecha y Hora'], df['Gente en Cola'], label='Gente en Cola', color='orange', linewidth=2)
     ax2.step(df['Fecha y Hora'], df['Limite Cola'], label='Límite Cola', color='darkred', linestyle='--', where='post')
     # Pintar el exceso de cola
     ax2.fill_between(df['Fecha y Hora'], df['Gente en Cola'], df['Limite Cola'], 
@@ -304,6 +305,12 @@ try:
     ax2.set_xlabel('Hora del día')
     ax2.legend(loc='upper left')
     ax2.grid(True, linestyle=':', alpha=0.6)
+
+    # Forzar números enteros en el eje Y del Aforo
+    ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
+    
+    # Forzar números enteros en el eje Y de la Cola
+    ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
 
     # Formatear fechas en el eje X
     plt.xticks(rotation=45)
